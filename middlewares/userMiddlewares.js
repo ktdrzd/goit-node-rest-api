@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
-import { asyncCatch } from "../helpers/asyncCatch";
-import HttpError from "../helpers/HttpError";
-import { Contacts } from "../models/userModel";
+import { asyncCatch } from "../helpers/asyncCatch.js";
+import HttpError from "../helpers/HttpError.js";
+import { Contacts } from "../models/userModel.js";
 
 export const checkUserId = asyncCatch(async (req, res, next) => {
   const { id } = req.params;

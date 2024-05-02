@@ -1,5 +1,5 @@
-import { Contacts } from "../models/userModel";
-import { asyncCatch } from "../helpers/asyncCatch";
+import { Contacts } from "../models/userModel.js";
+import { asyncCatch } from "../helpers/asyncCatch.js";
 
 export const getAllContacts = asyncCatch(async (req, res) => {
   const list = await Contacts.find();
