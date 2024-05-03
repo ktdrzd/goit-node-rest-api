@@ -5,7 +5,7 @@ import { Contacts } from "../models/userModel.js";
 
 export const checkUserId = asyncCatch(async (req, res, next) => {
   const { id } = req.params;
-  if (!Types.ObjectId.isValid(id)) throw new HttpError(400);
+  if (!Types.ObjectId.isValid(id)) throw new HttpError(404);
   const user = await Contacts.findById(id);
   if (!user) throw new HttpError(404);
   req.user = user;
