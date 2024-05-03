@@ -29,13 +29,13 @@ export const getOneContactById = async (id) => {
 export const deleteContactById = async (id) => {
   try {
     const list = await getListContacts();
-    const deleteContact = list.find((el) => el.id !== id);
-    if (!deleteContact) {
+    const delteContacts = list.find((el) => el.id === id);
+    if (!delteContacts) {
       return null;
     }
     const newList = list.filter((el) => el.id !== id);
     await fs.writeFile(contactsPath, JSON.stringify(newList));
-    return deleteContact;
+    return delteContacts;
   } catch (error) {
     console.log(error);
   }
