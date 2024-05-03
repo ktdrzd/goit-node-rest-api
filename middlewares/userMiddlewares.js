@@ -14,7 +14,7 @@ export const checkUserId = asyncCatch(async (req, res, next) => {
 
 export const checkUserBody = asyncCatch(async (req, res, next) => {
   if (Object.keys(req.body).length === 0)
-    throw new HttpError(400, "Body must have at least one field");
+    throw new HttpError(400, "Body must have at least one field!");
   next();
 });
 
