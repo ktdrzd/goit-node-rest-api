@@ -1,24 +1,38 @@
 import { model, Schema } from "mongoose";
+import bcrypt from "bcryptjs";
 
-const userSchema = new Schema({
-    name: {
-        type: String,
-        required: [true, "Set name for contact"],
+const userSchemas = new Schema(
+  {
+    email: {
+      type: String,
+      required: [true, "Email is required"],
+      unique: true,
     },
-    email: { 
-        type: String, 
-        unique: true,
+    password: {
+      type: String,
+      required: [true, "Password is required"],
+      select: false,
     },
-    phone: { 
-        type: String, 
+    subscription: {
+      type: String,
+      enum: ["starter", "pro", "business"],
+      default: "starter",
+    },
+    token: {
+      type: String,
+      default: null,
+    },
+  },
+  {
+    versionKey: false,
+  }
+);
 
-    }, 
-    favorite: { 
-        type: Boolean, 
-        default: false, 
-    },
-}, { 
-    versionKey: false,  
-})
+userSchemas.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
+  const salt = await bcrypt.genSalt(6);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
 
-export const Contacts = model("Contacts", userSchema);
+export const User = model("User", userSchemas);
