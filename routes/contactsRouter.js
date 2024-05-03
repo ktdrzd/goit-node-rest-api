@@ -1,4 +1,10 @@
 import express from "express";
+import validateBody from "../helpers/validateBody.js";
+import {
+  createContactSchema,
+  updateContactSchema,
+  patchContactSchema,
+} from "../schemas/contactsSchemas.js";
 import {
   getAllContacts,
   getOneContact,
@@ -7,12 +13,6 @@ import {
   updateContact,
   updateStatus,
 } from "../controllers/contactsControllers.js";
-import validateBody from "../helpers/validateBody.js";
-import {
-  createContactSchema,
-  updateContactSchema,
-  patchContactSchema,
-} from "../schemas/contactsSchemas.js";
 import {
   checkFavorite,
   checkUserBody,
