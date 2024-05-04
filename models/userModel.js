@@ -1,44 +1,67 @@
 import { model, Schema } from "mongoose";
-import bcrypt from "bcryptjs";
+import { handleError } from "../helpers/handleError.js";
+import bcrypt from "bcrypt";
 import crypto from "crypto";
-const userSchemas = new Schema(
+
+const userSchema = new Schema(
   {
+    password: {
+      type: String,
+      required: [true, "Set password for user"],
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
       unique: true,
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-      select: false,
     },
     subscription: {
       type: String,
       enum: ["starter", "pro", "business"],
       default: "starter",
     },
-    token: {
-      type: String,
-      default: null,
-    },
+    token: String,
     avatarURL: String,
   },
   {
+    timestamps: true,
     versionKey: false,
+  },
+  {
+    verify: {
+      type: Boolean,
+      default: false,
+    },
+    verificationToken: {
+      type: String,
+      required: [true, "Verify token is required"],
+    },
   }
 );
 
-userSchemas.pre("save", async function (next) {
+userSchema.pre("save", async function (next) {
   if (this.isNew) {
     const emailHash = crypto.createHash("md5").update(this.email).digest("hex");
-
     this.avatarURL = `https://gravatar.com/avatar/${emailHash}.jpg?d=robohash`;
+    if (!this.isModified("password")) return next();
   }
-  if (!this.isModified("password")) return next();
-  const salt = await bcrypt.genSalt(6);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
-export const User = model("User", userSchemas);
+userSchema.post("save", async function () {
+  if (this.isModified("avatarURL")) {
+    const pathSegments = this.avatarURL.split("/");
+    const fileName = pathSegments[pathSegments.length - 1];
+    this.avatarURL = `/avatars/${this.id}/${fileName}`;
+    await this.save();
+  }
+});
+
+userSchema.post("save", handleError);
+
+userSchema.methods.checkUserPassword = async function (
+  candidatePassword,
+  passwordHash
+) {
+  return await bcrypt.compare(candidatePassword, passwordHash);
+};
+
+export const User = model("user", userSchema);

@@ -1,24 +1,19 @@
 import multer from "multer";
-import HttpError from "../helpers/HttpError.js";
-
-import { nanoid } from "nanoid";
-import { promises as fs } from "fs";
 import path from "path";
-import jimp from "jimp";
+import { HttpError } from "../helpers/HttpError.js";
+import { v4 } from "uuid";
 import fse from "fs-extra";
+import jimp from "jimp";
 
 export class ImageService {
   static initUploadImageMiddleware(fieldName) {
     const multerStorage = multer.memoryStorage();
 
-    const multerFilter = (req, file, cb) => {
+    const multerFilter = (req, file, callback) => {
       if (file.mimetype.startsWith("image/")) {
-        cb(null, true);
+        callback(null, true);
       } else {
-        cb(
-          new HttpError(400, "Not an image! Please upload only images."),
-          false
-        );
+        callback(new HttpError(400, "Please, upload images only..."), false);
       }
     };
     return multer({
@@ -36,20 +31,20 @@ export class ImageService {
     ) {
       throw new HttpError(400, "File is too large...");
     }
-    const fileorig = path.join(process.cwd(), "tmp", file.originalname);
+    const fileName = `${v4()}.jpeg`;
+    const tmpDir = path.join(process.cwd(), "tmp");
+    const fullFilePath = path.join(tmpDir, fileName);
+    await fse.ensureDir(tmpDir);
+    await fse.outputFile(fullFilePath, file.buffer);
 
-    fse.ensureFileSync(fileorig);
-    await fs.writeFile(fileorig, file.buffer);
-
-    const fullFilePath = path.join(process.cwd(), "public", ...pathSegments);
-    const fileName = `${nanoid()}.jpg`;
-    const avatar = await jimp.read(file.buffer);
+    const avatar = await jimp.read(fullFilePath);
     await avatar
       .cover(options?.width ?? 250, options?.height ?? 250)
-      .quality(90)
-      .writeAsync(path.join(fullFilePath, fileName));
+      .quality(100)
+      .writeAsync(path.join(process.cwd(), "public", "avatars", fileName));
 
-    await fse.remove(fileorig);
+    await fse.unlink(fullFilePath);
+
     return path.join(...pathSegments, fileName);
   }
 }

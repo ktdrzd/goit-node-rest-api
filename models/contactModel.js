@@ -1,6 +1,7 @@
-import { model, Schema, Types } from "mongoose";
+import { model, Schema } from "mongoose";
+import { handleError } from "../helpers/handleError.js";
 
-const contactSchemas = new Schema(
+const contactSchema = new Schema(
   {
     name: {
       type: String,
@@ -8,7 +9,6 @@ const contactSchemas = new Schema(
     },
     email: {
       type: String,
-      unique: true,
     },
     phone: {
       type: String,
@@ -18,9 +18,8 @@ const contactSchemas = new Schema(
       default: false,
     },
     owner: {
-      type: Types.ObjectId,
-      ref: "User",
-      required: true,
+      type: Schema.Types.ObjectId,
+      ref: "user",
     },
   },
   {
@@ -28,4 +27,6 @@ const contactSchemas = new Schema(
   }
 );
 
-export const Contacts = model("Contacts", contactSchemas);
+contactSchema.post("save", handleError);
+
+export const Contact = model("Contact", contactSchema);
