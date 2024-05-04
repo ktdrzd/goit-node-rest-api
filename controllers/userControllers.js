@@ -1,7 +1,7 @@
 import HttpError from "../helpers/HttpError.js";
 import { asyncCatch } from "../helpers/asyncCatch.js";
 import { User } from "../models/userModel.js";
-import { checkUser, signUp } from "../services/usersServices.js";
+import { checkUser, signUp, updateImages } from "../services/usersServices.js";
 
 export const register = asyncCatch(async (req, res) => {
   const newUser = await signUp(req.body);
@@ -36,4 +36,11 @@ export const getCurrent = asyncCatch(async (req, res) => {
     email,
     subscription,
   });
+});
+
+export const updateAvatar = asyncCatch(async (req, res) => {
+  if (req.file === undefined)
+    throw new HttpError(400, "Field of avatar with file not found");
+  const user = await updateImages(req.body, req.user, req.file);
+  res.status(200).json({ avatarURL: user.avatarURL });
 });

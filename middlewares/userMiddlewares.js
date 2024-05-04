@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { Types, isValidObjectId } from "mongoose";
 import { asyncCatch } from "../helpers/asyncCatch.js";
 import HttpError from "../helpers/HttpError.js";
 import { Contacts } from "../models/contactsModel.js";
@@ -6,6 +6,8 @@ import { loginSchema, signUpSchema } from "../schemas/authSchemas.js";
 import { checkEmail } from "../services/usersServices.js";
 import { verifyToken } from "../services/jwtServices.js";
 import { User } from "../models/userModel.js";
+import multer from "multer";
+import { ImageService } from "../services/imageServices.js";
 
 export const checkUserId = asyncCatch(async (req, res, next) => {
   const { id } = req.params;
@@ -21,11 +23,10 @@ export const checkUserBody = asyncCatch(async (req, res, next) => {
 
 export const checkFavorite = asyncCatch(async (req, res, next) => {
   const { id } = req.params;
-  const contact = await Contacts.findById(id);
-  if (!contact || contact.owner.toString() !== req.user.id)
-    throw new HttpError(404);
+  if (!isValidObjectId(id)) throw new HttpError(404);
+
   if (req.body.favorite === undefined)
-    throw new HttpError(400, "Favorite field is missing");
+    throw new HttpError(400, "Favorite field is required");
   next();
 });
 
@@ -61,3 +62,5 @@ export const authenticate = asyncCatch(async (req, res, next) => {
   req.user = user;
   next();
 });
+
+export const uploadAvatar = ImageService.initUploadImageMiddleware("avatars");
