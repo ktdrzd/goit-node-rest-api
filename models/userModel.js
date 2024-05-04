@@ -1,38 +1,33 @@
 import { model, Schema } from "mongoose";
-import bcrypt from "bcryptjs";
+import { handleError } from "../helpers/handleError.js";
+import bcrypt from "bcrypt";
 
-const userSchemas = new Schema(
+const userSchema = new Schema(
   {
+    password: {
+      type: String,
+      required: [true, "Set password for user"],
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
       unique: true,
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-      select: false,
     },
     subscription: {
       type: String,
       enum: ["starter", "pro", "business"],
       default: "starter",
     },
-    token: {
-      type: String,
-      default: null,
-    },
+    token: String,
   },
   {
+    timestamps: true,
     versionKey: false,
   }
 );
 
-userSchemas.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  const salt = await bcrypt.genSalt(6);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
-});
+userSchema.post("save", handleError);
+userSchema.methods.checkUserPassword = (candidate, passwordHash) =>
+  bcrypt.compare(candidate, passwordHash);
 
-export const User = model("User", userSchemas);
+export const User = model("user", userSchema);

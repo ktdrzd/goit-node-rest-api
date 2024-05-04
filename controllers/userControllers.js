@@ -1,39 +1,61 @@
-import HttpError from "../helpers/HttpError.js";
-import { asyncCatch } from "../helpers/asyncCatch.js";
-import { User } from "../models/userModel.js";
-import { checkUser, signUp } from "../services/usersServices.js";
+import { catchAsync } from "../helpers/catchAsync.js";
+import {
+  deleteToken,
+  findUserByToken,
+  listUsers,
+  loginUser,
+  registerUser,
+  saveTokenToDatabase,
+} from "../services/usersService.js";
 
-export const register = asyncCatch(async (req, res) => {
-  const newUser = await signUp(req.body);
+export const getAllUsers = catchAsync(async (req, res, next) => {
+  const users = await listUsers();
+  res.status(200).json(users);
+});
+
+export const register = catchAsync(async (req, res) => {
+  const { newUser } = await registerUser({ ...req.body });
+  const { email, subscription } = newUser;
   res.status(201).json({
-    user: {
-      email: newUser.email,
-      subscription: newUser.subscription,
+    newUser: {
+      email: email,
+      subscription: subscription,
     },
   });
 });
 
-export const logIn = asyncCatch(async (req, res) => {
-  const user = await checkUser(req.body);
+export const login = catchAsync(async (req, res) => {
+  const { user, token } = await loginUser({ ...req.body });
+
+  const { email, subscription } = user;
+
+  await saveTokenToDatabase(user._id, token);
+
   res.status(200).json({
-    token: user.token,
     user: {
-      email: user.email,
-      subscription: user.subscription,
+      email: email,
+      subscription: subscription,
     },
+    token,
   });
 });
 
-export const logout = asyncCatch(async (req, res) => {
-  const { id } = req.user;
-  await User.findByIdAndUpdate(id, { token: null });
-  res.status(204).send;
-});
+export const getCurrent = async (req, res) => {
+  const { email, subscription, token } = req.user;
 
-export const getCurrent = asyncCatch(async (req, res) => {
-  const { email, subscription } = req.user;
+  const user = await findUserByToken(token);
+
+  if (!user) throw HttpError(401, "Not authorized");
+
   res.status(200).json({
     email,
     subscription,
   });
+};
+
+export const logout = catchAsync(async (req, res) => {
+  const { _id } = req.user;
+  await deleteToken({ _id }, { token: null });
+
+  res.status(204).send();
 });
