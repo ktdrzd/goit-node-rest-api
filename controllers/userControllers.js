@@ -17,7 +17,7 @@ export const register = catchAsync(async (req, res) => {
   const { newUser } = await registerUser({ ...req.body });
   const { email, subscription } = newUser;
   res.status(201).json({
-    newUser: {
+    user: {
       email: email,
       subscription: subscription,
     },
