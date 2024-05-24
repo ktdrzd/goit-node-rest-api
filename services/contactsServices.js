@@ -23,7 +23,7 @@ async function addContact(data, owner) {
   return newContacts;
 }
 
-async function updateContactById(contactId, updateData, owner) {
+async function updateContactById(contactId, owner, updateData) {
   const updatedContact = await Contact.findOneAndUpdate(
     {
       _id: contactId,
@@ -34,7 +34,8 @@ async function updateContactById(contactId, updateData, owner) {
   );
   return updatedContact;
 }
-async function updateStatusContact(contactId, updateData, owner) {
+
+async function updateStatusContact(contactId, owner, updateData) {
   const updatedContact = await Contact.findOneAndUpdate(
     {
       _id: contactId,
