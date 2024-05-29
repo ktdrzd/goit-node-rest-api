@@ -66,7 +66,7 @@ export const updateStatus = catchAsync(async (req, res, next) => {
   const { _id: owner } = req.user;
   const { favorite } = req.body;
 
-  const updatedContact = await updateStatusContact(id, { favorite }, owner);
+  const updatedContact = await updateStatusContact(id, owner, { favorite });
 
   if (!updatedContact) {
     return res.status(404).json({ message: "Not found" });
