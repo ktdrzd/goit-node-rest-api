@@ -24,7 +24,7 @@ export const checkRegisterData = catchAsync(async (req, res, next) => {
 
   if (error) {
     console.error("Validation error:", error);
-    throw HttpError(400, "Bad Request", error);
+    throw HttpError(400, "Bad Request");
   }
 
   const userExist = await checkUserExistsService({ email: value.email });
@@ -39,7 +39,7 @@ export const checkRegisterData = catchAsync(async (req, res, next) => {
 
 export const checkLoginData = (req, res, next) => {
   const { value, error } = loginUserDataValidator(req.body);
-  if (error) throw new HttpError(400, "Bad request", error);
+  if (error) throw HttpError(400, "Bad Request");
   req.body = value;
   next();
 };
@@ -48,6 +48,8 @@ export const protect = catchAsync(async (req, res, next) => {
   const token =
     req.headers.authorization?.startsWith("Bearer") &&
     req.headers.authorization.split(" ")[1];
+
+  if (!token) throw HttpError(401, "Not authorized");
 
   const userId = checkToken(token);
 
@@ -58,9 +60,8 @@ export const protect = catchAsync(async (req, res, next) => {
   if (!currentUser) throw HttpError(401, "Not authorized");
 
   if (!currentUser?.token || currentUser.token !== token) {
-    next(HttpError(401));
+    throw HttpError(401, "Not authorized");
   }
   req.user = currentUser;
-
   next();
 });
